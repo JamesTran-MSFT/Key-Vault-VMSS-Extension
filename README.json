@@ -3,10 +3,8 @@
 
 "When deploying a VMSS Extension, if you're running into the below error you can remove the `apiVersion` parameter and redeploy the template."
 
-"{"code":"DeploymentFailed","message":"At least one resource deployment operation failed. Please list deployment operations for details. 
-      Please see https://aka.ms/DeployOperations for usage details.",
-      "details":[{"code":"BadRequest","message":"Could not find member 'apiVersion' on object of type 'VMScaleSetVMExtension'. 
-                        Path 'properties.virtualMachineProfile.extensionProfile.extensions[0].apiVersion', line 1, position 1812."}]}"
+"BadRequest,message:Could not find member 'apiVersion' on object of type 'VMScaleSetVMExtension'." 
+                        "Path 'properties.virtualMachineProfile.extensionProfile.extensions[0].apiVersion'"
 
 {
       "type": "Microsoft.Compute/virtualMachines/extensions",
@@ -24,8 +22,8 @@
       "settings": {
         "secretsManagementSettings": {
           "pollingIntervalInS": "<string specifying polling interval in seconds, e.g: "3600">",
-          "certificateStoreName": "<certificate store name, e.g.: "MY">",
-          "certificateStoreLocation": "<certificate store location, currently it works locally only e.g.: "LocalMachine">",
+          "certificateStoreName": <"certificate store name, e.g.: ""MY">,
+          "certificateStoreLocation": "<certificate store location, currently it works locally only e.g.: ""LocalMachine>",
           "observedCertificates": "<list of KeyVault URIs representing monitored certificates, e.g.: ["https://myvault.vault.azure.net/secrets/mycertificate", "https://myvault.vault.azure.net/secrets/mycertificate2"]>"
         }      
       }
