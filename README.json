@@ -22,9 +22,9 @@
       "settings": {
         "secretsManagementSettings": {
           "pollingIntervalInS": "<string specifying polling interval in seconds, e.g: "3600">",
-          "certificateStoreName": <"certificate store name, e.g.: ""MY">,
-          "certificateStoreLocation": "<certificate store location, currently it works locally only e.g.: ""LocalMachine>",
-          "observedCertificates": "<list of KeyVault URIs representing monitored certificates, e.g.: ["https://myvault.vault.azure.net/secrets/mycertificate", "https://myvault.vault.azure.net/secrets/mycertificate2"]>"
+          "certificateStoreName": "<certificate store name, e.g.: MY>,
+          "certificateStoreLocation": "<certificate store location, currently it works locally only e.g.: LocalMachine>",
+          "observedCertificates": "<list of KeyVault URIs representing monitored certificates, e.g.: [https://myvault.vault.azure.net/secrets/mycertificate", "https://myvault.vault.azure.net/secrets/mycertificate2"]>
         }      
       }
       }
