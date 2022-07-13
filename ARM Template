@@ -1,0 +1,304 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "apiVersion": "2022-03-01",
+            "name": "testVMSS",
+            "location": "westus3",
+            "sku": {
+                "name": "Standard_B1ms",
+                "tier": "Standard",
+                "capacity": 2
+            },
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "/subscriptions/<<SubID>>/resourceGroups/managedIdentity/providers/Microsoft.ManagedIdentity/userAssignedIdentities/jatranManagedIdentity": {}
+                }
+            },
+            "properties": {
+                "singlePlacementGroup": false,
+                "upgradePolicy": {
+                    "mode": "Manual"
+                },
+                "scaleInPolicy": {
+                    "rules": [
+                        "Default"
+                    ]
+                },
+                "virtualMachineProfile": {
+                    "osProfile": {
+                        "computerNamePrefix": "testvmssx",
+                        "adminUsername": "userName",
+                        "windowsConfiguration": {
+                            "provisionVMAgent": true,
+                            "enableAutomaticUpdates": true
+                        },
+                        "secrets": [],
+                        "allowExtensionOperations": true
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "osType": "Windows",
+                            "createOption": "FromImage",
+                            "caching": "ReadWrite",
+                            "managedDisk": {
+                                "storageAccountType": "StandardSSD_LRS"
+                            },
+                            "diskSizeGB": 127
+                        },
+                        "imageReference": {
+                            "publisher": "MicrosoftWindowsServer",
+                            "offer": "WindowsServer",
+                            "sku": "2019-Datacenter",
+                            "version": "latest"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "testVMSS_group-vnet-nic01",
+                                "properties": {
+                                    "primary": true,
+                                    "enableAcceleratedNetworking": false,
+                                    "networkSecurityGroup": {
+                                        "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Network/networkSecurityGroups/basicNsgtestVMSS_group-vnet-nic01"
+                                    },
+                                    "dnsSettings": {
+                                        "dnsServers": []
+                                    },
+                                    "enableIPForwarding": false,
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "testVMSS_group-vnet-nic01-defaultIpConfiguration",
+                                            "properties": {
+                                                "primary": true,
+                                                "subnet": {
+                                                    "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Network/virtualNetworks/testVMSS_group-vnet/subnets/default"
+                                                },
+                                                "privateIPAddressVersion": "IPv4"
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+								{
+                                "type": "Microsoft.Compute/virtualMachines/extensions",
+                                "name": "KeyVaultForWindows",
+                                "apiVersion": "2019-07-01", //Remove the apiVersion parameter as needed 
+                                "location": "West US 3",
+                                "properties": {
+                                "publisher": "Microsoft.Azure.KeyVault",
+                                "type": "KeyVaultForWindows",
+                                "typeHandlerVersion": "1.0",
+                                "autoUpgradeMinorVersion": true,
+                                "settings": {
+                                  "secretsManagementSettings": {
+                                    "pollingIntervalInS": "3600",
+                                    "certificateStoreName": "myStoreName",
+                                    "certificateStoreLocation": "LocalMachine",
+                                    "observedCertificates": ["https://<<YourKV>>.vault.azure.net/secrets/mycertificate", "https://<<YourKV>>.vault.azure.net/secrets/mycertificate2"]
+                                  },
+                                "authenticationSettings": {
+                                    "msiEndpoint": "http://169.254.169.254/metadata/identity/oauth2/token",
+                                    "msiClientId":  "<<yourMSIID>>"
+                                }
+                                }
+                                }
+                              }
+						]
+                    }
+                },
+                "overprovision": false,
+                "doNotRunExtensionsOnOverprovisionedVMs": false,
+                "platformFaultDomainCount": 1
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines",
+            "apiVersion": "2022-03-01",
+            "name": "testVMSS/0",
+            "location": "westus3",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'testVMSS')]"
+            ],
+            "sku": {
+                "name": "Standard_B1ms",
+                "tier": "Standard"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "networkProfileConfiguration": {
+                    "networkInterfaceConfigurations": [
+                        {
+                            "name": "testVMSS_group-vnet-nic01",
+                            "properties": {
+                                "primary": true,
+                                "enableAcceleratedNetworking": false,
+                                "networkSecurityGroup": {
+                                    "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Network/networkSecurityGroups/basicNsgtestVMSS_group-vnet-nic01"
+                                },
+                                "dnsSettings": {
+                                    "dnsServers": []
+                                },
+                                "enableIPForwarding": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "testVMSS_group-vnet-nic01-defaultIpConfiguration",
+                                        "properties": {
+                                            "primary": true,
+                                            "subnet": {
+                                                "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Network/virtualNetworks/testVMSS_group-vnet/subnets/default"
+                                            },
+                                            "privateIPAddressVersion": "IPv4"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1ms"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "testVMSS_testVMSS_0_OsDisk_1_59811124091e4b6e850e9db97f6ea167",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "StandardSSD_LRS",
+                            "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Compute/disks/testVMSS_testVMSS_0_OsDisk_1_59811124091e4b6e850e9db97f6ea167"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "testvmssx000000",
+                    "adminUsername": "userName",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', 'testVMSS', '0'), '/networkInterfaces/testVMSS_group-vnet-nic01')]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets/virtualMachines",
+            "apiVersion": "2022-03-01",
+            "name": "testVMSS/1",
+            "location": "westus3",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachineScaleSets', 'testVMSS')]"
+            ],
+            "sku": {
+                "name": "Standard_B1ms",
+                "tier": "Standard"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "networkProfileConfiguration": {
+                    "networkInterfaceConfigurations": [
+                        {
+                            "name": "testVMSS_group-vnet-nic01",
+                            "properties": {
+                                "primary": true,
+                                "enableAcceleratedNetworking": false,
+                                "networkSecurityGroup": {
+                                    "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Network/networkSecurityGroups/basicNsgtestVMSS_group-vnet-nic01"
+                                },
+                                "dnsSettings": {
+                                    "dnsServers": []
+                                },
+                                "enableIPForwarding": false,
+                                "ipConfigurations": [
+                                    {
+                                        "name": "testVMSS_group-vnet-nic01-defaultIpConfiguration",
+                                        "properties": {
+                                            "primary": true,
+                                            "subnet": {
+                                                "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Network/virtualNetworks/testVMSS_group-vnet/subnets/default"
+                                            },
+                                            "privateIPAddressVersion": "IPv4"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1ms"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2019-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Windows",
+                        "name": "testVMSS_testVMSS_1_OsDisk_1_47a4c78b3aa4424780a891a68d3a5030",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "StandardSSD_LRS",
+                            "id": "/subscriptions/<<SubID>>/resourceGroups/testVMSS_group/providers/Microsoft.Compute/disks/testVMSS_testVMSS_1_OsDisk_1_47a4c78b3aa4424780a891a68d3a5030"
+                        },
+                        "diskSizeGB": 127
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "testvmssx000001",
+                    "adminUsername": "userName",
+                    "windowsConfiguration": {
+                        "provisionVMAgent": true,
+                        "enableAutomaticUpdates": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true,
+                    "requireGuestProvisionSignal": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[concat(resourceId('Microsoft.Compute/virtualMachineScaleSets/virtualMachines', 'testVMSS', '1'), '/networkInterfaces/testVMSS_group-vnet-nic01')]"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}
